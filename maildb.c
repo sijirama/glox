@@ -96,7 +96,7 @@ void display(void) {
 void save(void) { // save the list.
     FILE *fp;
     register int t;
-    fp = fopen("maillist", "wb");
+    fp = fopen("maillist", "ab");
     if (fp == NULL) {
         printf("Error Opening Records");
         return;
@@ -115,7 +115,7 @@ void save(void) { // save the list.
 void load(void) { // load the list
     FILE *fp;
     register int t;
-    fp = fopen("maillist", "wb");
+    fp = fopen("maillist", "rb");
     if (fp == NULL) {
         printf("Error Opening Records");
         return;
