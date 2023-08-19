@@ -1,5 +1,4 @@
 /* A very simple mail database */
-
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,7 +16,8 @@ struct list_type {
 
 /* Function prototypes */
 char menu(void);
-void init_list(void), enter(void), display(void), save(void), load(void);
+void init_list(void), enter(void), display(void), save(void), load(void),
+    clear(void);
 
 int main(void) {
     char choice;
@@ -37,6 +37,9 @@ int main(void) {
             break;
         case 'l':
             load();
+            break;
+        case 'c':
+            clear();
             break;
         case 'q':
             exit(0);
@@ -132,6 +135,17 @@ void load(void) { // load the list
     fclose(fp);
 }
 
+void clear(void) {
+    FILE *fp;
+    fp = fopen("maillist", "wb");
+    if (fp == NULL) {
+        printf("Error Opening Records");
+        return;
+    }
+    fclose(fp);
+    printf("Database has been cleared \n");
+}
+
 char menu(void) { // menu
     char s[80];
     do {
@@ -140,6 +154,7 @@ char menu(void) { // menu
         printf("(D)isplay \n");
         printf("(L)oad \n");
         printf("(S)ave \n");
+        printf("(C)lear \n");
         printf("(Q)uit \n");
         printf("\n");
         printf("Pick an Option: ");
@@ -149,6 +164,6 @@ char menu(void) { // menu
         int c;
         while ((c = getchar()) != '\n' && c != EOF)
             ; // clear the input buffer
-    } while (!strchr("edlsq", tolower(*s)));
+    } while (!strchr("edlscq", tolower(*s)));
     return tolower(*s);
 }
