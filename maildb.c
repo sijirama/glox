@@ -53,7 +53,6 @@ void init_list() {
     for (t = 0; t < SIZE; t++)
         *list[t].name = '\0';
     /* zero length name indicates empty */
-    printf("Done Initializing list...\n");
 }
 
 void enter() {
@@ -68,6 +67,7 @@ void enter() {
         return;
     }
 
+    // WARN: fgets automatically adds the \n behind the strings if its fits
     printf("Name: ");
     fgets(list[i].name, sizeof(list[i].name), stdin);
 
@@ -77,6 +77,7 @@ void enter() {
     printf("City: ");
     fgets(list[i].city, sizeof(list[i].name), stdin);
 
+    // WARN: overflows if users add 3 letters on the spot
     printf("State: ");
     fgets(list[i].state, sizeof(list[i].name), stdin);
 
