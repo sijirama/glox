@@ -1,18 +1,20 @@
 package main
 
 import (
-	"log"
-
 	"github.com/sijirama/glox/p2p"
+	"log"
 )
 
 func main() {
-	tr := p2p.NewTCPTransport(":3000")
 
+	opts := p2p.TCPTransportOps{
+		ListenAddr:    ":3000",
+		HandShakeFunc: p2p.NOPHandshakeFunc,
+	}
+
+	tr := p2p.NewTCPTransport(opts)
 	if err := tr.ListenAndAccept(); err != nil {
 		log.Fatal(err)
 	}
-
 	select {}
-
 }
