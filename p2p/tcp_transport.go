@@ -39,8 +39,6 @@ func NewTCPTransport(opts TCPTransportOps) *TCPTransport {
 	}
 }
 
-type Temp struct{}
-
 func (t *TCPTransport) handleConn(conn net.Conn) {
 	peer := NewTCPPeer(conn, true) //INFO: create a peer that acccepts the connection
 
@@ -50,7 +48,7 @@ func (t *TCPTransport) handleConn(conn net.Conn) {
 		return
 	}
 
-	msg := &Temp{}
+	msg := &Message{}
 
 	for {
 		if err := t.Decoder.Decode(conn, msg); err != nil {
@@ -58,6 +56,7 @@ func (t *TCPTransport) handleConn(conn net.Conn) {
 			continue
 		}
 
+		fmt.Printf("message: %+v\n", msg)
 	}
 
 }
