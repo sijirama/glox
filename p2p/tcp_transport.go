@@ -3,7 +3,6 @@ package p2p
 import (
 	"fmt"
 	"net"
-	"sync"
 )
 
 //INFO: represents a remote node in an established tcp connections
@@ -12,18 +11,21 @@ type TCPPeer struct {
 	outbound bool     //INFO: basically lets us know if it was dialed or it's the dialer
 }
 
+func (peer *TCPPeer) Close() error {
+	return peer.conn.Close()
+}
+
 type TCPTransportOps struct {
 	ListenAddr    string
 	HandShakeFunc HandshakeFunc
 	Decoder       Decoder
+	OnPeer        func(Peer) error
 }
 
 type TCPTransport struct {
 	TCPTransportOps
 	listener net.Listener
-
-	mu    sync.RWMutex
-	peers map[net.Addr]Peer
+	rpcch    chan RPC
 }
 
 func NewTCPPeer(conn net.Conn, outbound bool) *TCPPeer {
@@ -36,31 +38,50 @@ func NewTCPPeer(conn net.Conn, outbound bool) *TCPPeer {
 func NewTCPTransport(opts TCPTransportOps) *TCPTransport {
 	return &TCPTransport{
 		TCPTransportOps: opts,
+		rpcch:           make(chan RPC),
 	}
 }
 
 func (t *TCPTransport) handleConn(conn net.Conn) {
+
+	var err error
+
+	defer func() {
+		fmt.Printf("Dropping peer connection: %s\n", err)
+		conn.Close()
+	}()
+
 	peer := NewTCPPeer(conn, true) //INFO: create a peer that acccepts the connection
 
 	if err := t.HandShakeFunc(peer); err != nil {
-		fmt.Printf("TCP handshake error: %s\n", err)
-		conn.Close()
 		return
 	}
 
-	msg := &Message{}
-
-	for {
-		if err := t.Decoder.Decode(conn, msg); err != nil {
-			fmt.Printf("TCP error: %s\n", err)
-			continue
+	if t.OnPeer != nil {
+		if err := t.OnPeer(peer); err != nil {
+			return
 		}
-
-        msg.From = conn.RemoteAddr()
-
-		fmt.Printf("message: %+v\n", msg)
 	}
 
+	//read loop
+	rpc := RPC{}
+
+	for {
+		err = t.Decoder.Decode(conn, &rpc)
+
+		if err != nil {
+			fmt.Printf("TCP read error: %s\n", err)
+			return
+		}
+
+		rpc.From = conn.RemoteAddr()
+		t.rpcch <- rpc
+	}
+
+}
+
+func (t *TCPTransport) Consume() <-chan RPC {
+	return t.rpcch
 }
 
 func (t *TCPTransport) startAcceptLoop() {
