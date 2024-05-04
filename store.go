@@ -6,14 +6,23 @@ import (
 	"io"
 	"log"
 	"os"
+	"strings"
 )
 
-
 func CASPathTransformFunc(key string) string {
-    hash := sha1.Sum([]byte(key))
-    hashedString := hex.EncodeToString(hash[:]) //[:] converts it to a byte slice
+	hash := sha1.Sum([]byte(key))
+	hashedString := hex.EncodeToString(hash[:]) //[:] converts it to a byte slice
 
-    return hashedString
+	blockSize := 5
+	sliceLength := len(hashedString) / blockSize
+
+	paths := make([]string, sliceLength)
+
+	for i := 0; i < sliceLength; i++ {
+		paths[i] = hashedString[i*blockSize : (i+1)*blockSize]
+	}
+
+	return strings.Join(paths, "/")
 }
 
 type PathTransformFunc func(string) string
