@@ -1,38 +1,33 @@
 package main
 
 import (
-	"fmt"
-	"log"
-
 	"github.com/sijirama/glox/p2p"
+	"log"
 )
-
-func OnPeer(peer p2p.Peer) error {
-	fmt.Println("Processing some logic with the peer outside the TCP Transport")
-	//peer.Close()
-	return nil
-}
 
 func main() {
 
-	opts := p2p.TCPTransportOps{
+	tcpTransportOpts := p2p.TCPTransportOps{
 		ListenAddr:    ":3000",
 		HandShakeFunc: p2p.NOPHandshakeFunc,
 		Decoder:       p2p.DefaultDecoder{},
-		OnPeer:        OnPeer,
+
+		//TODO: onpeer function
 	}
 
-	tr := p2p.NewTCPTransport(opts)
+	tcpTransport := p2p.NewTCPTransport(tcpTransportOpts)
 
-	go func() {
-		for {
-			msg := <-tr.Consume()
-			fmt.Printf("%+v\n", msg)
-		}
-	}()
+	fileServerOpts := FileServerOpts{
+		StorageRoot:       "3000_network",
+		PathTransformFunc: CASPathTransformFunc,
+		Transport:         tcpTransport,
+	}
 
-	if err := tr.ListenAndAccept(); err != nil {
+	s := NewFileServer(fileServerOpts)
+
+	if err := s.Start(); err != nil {
 		log.Fatal(err)
 	}
+
 	select {}
 }
