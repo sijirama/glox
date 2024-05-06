@@ -1,6 +1,10 @@
 package main
 
-import "github.com/sijirama/glox/p2p"
+import (
+	"io"
+
+	"github.com/sijirama/glox/p2p"
+)
 
 type FileServerOpts struct {
 	StorageRoot       string
@@ -32,4 +36,8 @@ func (s *FileServer) Start() error {
 		return err
 	}
 	return nil
+}
+
+func (s *FileServer) Store(key string, r io.Reader) error {
+	return s.store.Write(key, r)
 }
